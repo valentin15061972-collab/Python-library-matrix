@@ -1,5 +1,5 @@
 import asyncio
-from aiohttp import ClientSession, ClientError, ServerTimeoutError, ClientConnectorError
+from aiohttp import ClientSession
 from typing import List
 
 
@@ -19,7 +19,7 @@ def parse_matrix(text: str) -> List[List[int]]:
     return matrix
 
 
-def spiral_move(matrix: List[List[int]]) -> List[int]:
+def spiral_move_matrix(matrix: List[List[int]]) -> List[int]:
     if not matrix or not matrix[0]:
         return []
 
@@ -35,17 +35,17 @@ def spiral_move(matrix: List[List[int]]) -> List[int]:
         if left <= right:
             for j in range(left, right + 1):
                 result.append(matrix[bottom][j])
-            bottom -= 1
+        bottom -= 1
 
         if top <= bottom:
             for i in range(bottom, top - 1, -1):
                 result.append(matrix[i][right])
-            right -= 1
+        right -= 1
 
         if left <= right:
             for j in range(right, left - 1, -1):
                 result.append(matrix[top][j])
-            top += 1
+        top += 1
 
     return result
 
@@ -59,21 +59,17 @@ async def get_matrix(url: str) -> List[int]:
                 text = await response.text()
 
         matrix_2d = parse_matrix(text)
-        return spiral_move(matrix_2d)
+        return spiral_move_matrix(matrix_2d)
 
-    except ServerTimeoutError:
-        raise ValueError("Время запроса истекло")
-    except ClientConnectorError:
-        raise ValueError("Не удалось подключиться к серверу")
-    except ClientError as e:
-        raise ValueError(f"Ошибка клиента: {e}")
-    except asyncio.TimeoutError:
-        raise ValueError("Время асинхронной операции истекло")
-    except Exception as e:
-        raise ValueError(f"Неожиданная ошибка: {e}")
+    except TimeoutError as t:
+        raise ValueError(f"Время запроса истекло: {t}")
+    except Exception as ex:
+        raise ValueError(f"Непредвиденная ошибка: {ex}")
 
 
 URL = 'https://raw.githubusercontent.com/avito-tech/python-trainee-assignment/main/matrix.txt'
 
-start = asyncio.run(get_matrix(URL))
-print(start)
+
+if __name__ == '__main__':
+    start = asyncio.run(get_matrix(URL))
+    print(start)
